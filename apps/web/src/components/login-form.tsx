@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Button, Checkbox, Input, Label } from "@gtms/ui";
 import { APP_NAME, APP_TAGLINE } from "@gtms/config";
 import { getAuthErrorMessage, useAuth } from "@/lib/auth/auth-context";
 
 export function LoginForm() {
   const { login } = useAuth();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -37,10 +36,11 @@ export function LoginForm() {
     try {
       await login({ username, password, rememberMe });
       const next = searchParams.get("next") || "/dashboard";
-      router.replace(next.startsWith("/") ? next : "/dashboard");
+      const destination = next.startsWith("/") ? next : "/dashboard";
+      // Hard navigation avoids soft-route races with the auth gate.
+      window.location.assign(destination);
     } catch (err) {
       setError(getAuthErrorMessage(err));
-    } finally {
       setLoading(false);
     }
   }

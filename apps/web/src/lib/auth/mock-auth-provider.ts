@@ -111,7 +111,8 @@ export const mockAuthProvider: AuthProvider = {
   },
 
   async getSession(): Promise<Session | null> {
-    await delay(120);
+    // Keep bootstrap fast so it doesn't race with a quick login.
+    await delay(40);
     return readStoredSession();
   },
 };

@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -28,36 +29,58 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const sessionRef = useRef<Session | null>(null);
+  const bootstrapId = useRef(0);
+
+  const setSessionSafe = useCallback((next: Session | null) => {
+    sessionRef.current = next;
+    setSession(next);
+  }, []);
 
   const refreshSession = useCallback(async () => {
     const next = await mockAuthProvider.getSession();
-    setSession(next);
-  }, []);
+    setSessionSafe(next);
+  }, [setSessionSafe]);
 
   useEffect(() => {
+    const id = ++bootstrapId.current;
     let active = true;
+
     (async () => {
       try {
         const next = await mockAuthProvider.getSession();
-        if (active) setSession(next);
+        // Ignore stale bootstrap if login/logout already changed session.
+        if (!active || id !== bootstrapId.current) return;
+        if (sessionRef.current) return;
+        setSessionSafe(next);
       } finally {
-        if (active) setIsLoading(false);
+        if (active && id === bootstrapId.current) {
+          setIsLoading(false);
+        }
       }
     })();
+
     return () => {
       active = false;
     };
-  }, []);
+  }, [setSessionSafe]);
 
-  const login = useCallback(async (credentials: LoginCredentials) => {
-    const next = await mockAuthProvider.login(credentials);
-    setSession(next);
-  }, []);
+  const login = useCallback(
+    async (credentials: LoginCredentials) => {
+      bootstrapId.current += 1;
+      const next = await mockAuthProvider.login(credentials);
+      setSessionSafe(next);
+      setIsLoading(false);
+    },
+    [setSessionSafe],
+  );
 
   const logout = useCallback(async () => {
+    bootstrapId.current += 1;
     await mockAuthProvider.logout();
-    setSession(null);
-  }, []);
+    setSessionSafe(null);
+    setIsLoading(false);
+  }, [setSessionSafe]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -85,6 +108,13 @@ export function useAuth(): AuthContextValue {
 
 export function getAuthErrorMessage(error: unknown): string {
   if (error instanceof AuthError) return error.message;
-  if (error instanceof Error) return error.message;
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof (error as { message: unknown }).message === "string"
+  ) {
+    return (error as { message: string }).message;
+  }
   return "Something went wrong. Please try again.";
 }
