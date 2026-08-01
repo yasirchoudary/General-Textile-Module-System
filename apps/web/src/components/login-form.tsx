@@ -125,17 +125,6 @@ export function LoginForm() {
         <Button type="submit" className="w-full" loading={loading} size="lg">
           Sign in
         </Button>
-
-        <div className="pt-2">
-          <button
-            type="button"
-            className="w-full rounded-md border border-dashed border-[var(--color-border)] px-3 py-2 text-sm text-[var(--color-ink-subtle)]"
-            disabled
-            title="SSO not configured yet"
-          >
-            Continue with SSO (coming soon)
-          </button>
-        </div>
       </form>
 
       <div className="mt-8 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-3 py-3 text-xs text-[var(--color-ink-muted)]">
