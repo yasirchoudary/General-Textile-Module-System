@@ -35,7 +35,9 @@ export interface AccountHead {
   id: string;
   code: string;
   name: string;
+  openingBalance?: number;
 }
+
 
 export interface Contract {
   id: string;
@@ -83,21 +85,107 @@ export interface PaidVoucherInput {
   amount: number;
 }
 
-export interface ReceiptVoucher {
+export interface ReceiveVoucher {
   id: string;
   voucherNo: string;
   date: string;
   partyId: string;
   contractId: string;
+  headId?: string;
   description: string;
   amount: number;
   createdAt: string;
 }
 
-export interface ReceiptVoucherInput {
+export interface ReceiveVoucherInput {
   date: string;
   partyId: string;
   contractId: string;
+  headId?: string;
   description: string;
   amount: number;
 }
+
+/** Backward compatibility aliases for receipt vouchers */
+export type ReceiptVoucher = ReceiveVoucher;
+export type ReceiptVoucherInput = ReceiveVoucherInput;
+
+/** Ledger types */
+export type VoucherType = "payableBill" | "paid" | "receive";
+
+export interface LedgerEntry {
+  id: string;
+  date: string;
+  voucherNo: string;
+  voucherType: VoucherType;
+  voucherTypeLabel: string;
+  description: string;
+  referenceInfo?: string;
+  debit: number;
+  credit: number;
+  balance: number;
+  balanceType: BalanceType;
+}
+
+export interface PartyLedgerStatement {
+  party: Party;
+  startDate?: string;
+  endDate?: string;
+  openingBalance: number;
+  openingBalanceType: BalanceType;
+  entries: LedgerEntry[];
+  totalDebit: number;
+  totalCredit: number;
+  closingBalance: number;
+  closingBalanceType: BalanceType;
+}
+
+export interface LedgerFilterParams {
+  partyIds?: string[];
+  startDate?: string;
+  endDate?: string;
+  voucherTypes?: VoucherType[];
+}
+
+/** Cash Book types */
+export type CashBookAccountFilter = "all" | string;
+
+export interface CashBookEntry {
+  id: string;
+  date: string;
+  voucherNo: string;
+  voucherType: "paid" | "receive";
+  voucherTypeLabel: string;
+  headId: string;
+  headName: string;
+  headCode: string;
+  partyId?: string;
+  partyName?: string;
+  partyCode?: string;
+  description: string;
+  inflow: number; // Money In (Receive)
+  outflow: number; // Money Out (Paid)
+  runningBalance: number;
+}
+
+export interface CashBookStatement {
+  accountFilter: CashBookAccountFilter;
+  accountName: string;
+  startDate?: string;
+  endDate?: string;
+  openingBalance: number;
+  entries: CashBookEntry[];
+  totalInflow: number;
+  totalOutflow: number;
+  closingBalance: number;
+  cashBalance: number;
+  bankBalance: number;
+}
+
+export interface CashBookFilterParams {
+  headId?: CashBookAccountFilter;
+  startDate?: string;
+  endDate?: string;
+}
+
+

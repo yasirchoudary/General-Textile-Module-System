@@ -68,8 +68,20 @@ export const FINANCE_NAV: FinanceNavItem[] = [
     description: "Date · Head · Party · Amount",
   },
   {
-    label: "Receipt",
-    href: "/dashboard/finance/vouchers/receipt",
+    label: "Receive",
+    href: "/dashboard/finance/vouchers/receive",
     description: "Date · Party · Contract · Amount",
   },
+  {
+    label: "Party Ledger",
+    href: "/dashboard/finance/ledger",
+    description: "Party statement · Date range · Multi-party",
+  },
+  {
+    label: "Cash Book",
+    href: "/dashboard/finance/cashbook",
+    description: "Cash & bank book · Inflows · Outflows · Liquidity",
+  },
 ];
+
+
